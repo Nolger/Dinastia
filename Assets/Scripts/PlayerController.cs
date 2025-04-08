@@ -1,105 +1,106 @@
 using UnityEngine;
-
-public class PlayerController : MonoBehaviour
+[RequireComponent(typeof(Rigidbody))]
+public class SimplePlayerController : MonoBehaviour
 {
     private Rigidbody rb;
     private Animator animator;
+    
+    // Variables de configuración del movimiento, rotación y salto
+    [Header("Movimiento")]
+    public float moveSpeed = 5f;
+    public float runSpeed = 10f;
+    public float rotationSpeed = 120f;
+    public float jumpForce = 7f;
+    public float dashForce = 40f;
+    public float dashCooldown = 3f;
 
-    [SerializeField] private float walkSpeed;
-    [SerializeField] private float runSpeed;
-    [SerializeField] private float speedRotation;
-    [SerializeField] private float jumpForce;
-
-    private bool canJump = false;
-    float currentSpeed = 0;
-    bool isRunning = false;
+    private bool isGrounded;
+    private bool canDash;
+    private float lastDash;
+    
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
-        Cursor.lockState = CursorLockMode.Locked;
     }
-
-    // Update is called once per frame
+    
     void Update()
     {
-        HandleMovement();
-        Jumping();
+        MoveAndRotate();
+        Jump();
+        dash();
     }
-
-    private void HandleMovement()
+    
+    // Mover y rotar el jugador
+    void MoveAndRotate()
     {
-        float verticalInput = Input.GetAxis("Vertical"); // W/S
-        float horizontalInput = Input.GetAxis("Horizontal"); // A/D
-
-        //logica para aplicar del movimiento
-        if (verticalInput != 0 || horizontalInput != 0)
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
+        transform.Rotate(0, horizontal * rotationSpeed * Time.deltaTime, 0);
+        Vector3 direction = new Vector3(0f, 0f, vertical).normalized;
+        float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : moveSpeed;   
+        Vector3 move = transform.TransformDirection(direction) * currentSpeed * Time.deltaTime;
+        rb.MovePosition(rb.position + move);
+        // Animaciones de caminar y correr
+        if (vertical != 0f)
         {
-            if (Input.GetKey(KeyCode.LeftShift))
+            if (currentSpeed == runSpeed)
             {
-                isRunning = true;
-                currentSpeed = runSpeed;
+                animator.SetBool("isRunning", true);
+                animator.SetBool("isWalking", false);
             }
             else
             {
-                isRunning = false;
-                currentSpeed = walkSpeed;
+                animator.SetBool("isRunning", false);
+                animator.SetBool("isWalking", true);
             }
         }
         else
         {
-            currentSpeed = 0;
+            animator.SetBool("isRunning", false);
+            animator.SetBool("isWalking", false);
         }
-
-        //Moverse
-        transform.Translate(new Vector3(horizontalInput, 0, verticalInput) * walkSpeed * Time.deltaTime);
-
-        //Rotar la camara con el Mouse
-        float rotcamX = Input.GetAxis("Mouse X");
-        transform.Rotate(0, rotcamX * speedRotation * Time.deltaTime, 0);
-
-        // Aplicar movimiento
-        //Vector3 movement = transform.forward * currentSpeed * Time.deltaTime;
-        //rb.MovePosition(transform.position + movement);
-
-
-        // Rotación si el personaje se mueve
-        /*if (movement.magnitude > 0)
-        {
-            transform.Rotate(0, horizontalInput * speedRotation * Time.deltaTime, 0);
-        }*/
-
-        // Pasar valores al Animator
-        animator.SetFloat("Speed", Mathf.Abs(currentSpeed));
-        animator.SetBool("isRunning", isRunning);
     }
-
-
-    private void Jumping()
+    
+    // Hacemos el jump si se presiona la tecla espacio
+    void Jump()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && canJump == true)
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            isGrounded = false;
             animator.SetBool("isJumping", true);
         }
     }
 
+    //Hacemos el dash si se presiona la tecla control
+    void dash()
+    {
+        // Hacemos el dash si se cumple la condición
+        if (Input.GetKeyDown(KeyCode.LeftControl) && canDash)
+        {
+            rb.AddForce(transform.forward * dashForce, ForceMode.Impulse);
+            canDash = false;
+            lastDash = Time.time;
+        } 
+        // Verificamos si el jugador puede hacer el dash
+        if (canDash == false){
+            if (Time.time - lastDash > dashCooldown)
+            {
+                canDash = true;
+                lastDash = Time.time;
+            }
+        }
+    }
+    
+    // Detectamos si el jugador está colisionado
     void OnCollisionEnter(Collision other)
     {
         if (other.gameObject.CompareTag("Ground"))
         {
-            Debug.Log("Ground");
-            canJump = true;
+            isGrounded = true;
+            // La animación de jump se desactiva cuando el jugador está en el suelo
             animator.SetBool("isJumping", false);
         }
     }
-
-    void OnCollisionExit(Collision other)
-    {
-        if (other.gameObject.CompareTag("Ground"))
-        {
-            canJump = false;
-        }
-    }
-
 }
