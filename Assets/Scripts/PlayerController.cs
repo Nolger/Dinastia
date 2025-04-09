@@ -85,6 +85,7 @@ public class SimplePlayerController : MonoBehaviour
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             isGrounded = false;
+            animator.SetBool("isGround", false);
             animator.SetBool("isJumping", true);
         }
     }
@@ -118,6 +119,7 @@ public class SimplePlayerController : MonoBehaviour
             isGrounded = true;
             // La animación de jump se desactiva cuando el jugador está en el suelo
             animator.SetBool("isJumping", false);
+            animator.SetBool("isGround", true);
         }
     }
 
