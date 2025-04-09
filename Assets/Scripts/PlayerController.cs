@@ -48,15 +48,17 @@ public class SimplePlayerController : MonoBehaviour
     // Mover y rotar el jugador
     void MoveAndRotate()
     {
+        
+        //Vector3 move = transform.TransformDirection(direction) * currentSpeed * Time.deltaTime;
+        //rb.MovePosition(rb.position + move);
+
+        // Animaciones de caminar y correr
         if (vertical != 0f)
         {
             //rb.AddForce(transform.forward * currentSpeed, ForceMode.Force);
-            if (canDash)
-            {
-                Vector3 direction = new Vector3(0f, 0f, vertical).normalized;
-                Vector3 move = transform.TransformDirection(direction) * currentSpeed * Time.deltaTime;
-                rb.MovePosition(rb.position + move);
-            }
+            Vector3 direction = new Vector3(0f, 0f, vertical).normalized;
+            Vector3 move = transform.TransformDirection(direction) * currentSpeed * Time.deltaTime;
+            rb.MovePosition(rb.position + move);
             
             if (currentSpeed == runSpeed)
             {
