@@ -17,36 +17,46 @@ public class SimplePlayerController : MonoBehaviour
     private bool isGrounded;
     private bool canDash;
     private float lastDash;
-    
+
+    float horizontal;
+    float vertical;
+    float currentSpeed;
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
     }
-    
-    void Update()
+
+    private void Update()
     {
-        MoveAndRotate();
-        Jump();
-        dash();
-    }
-    
-    // Mover y rotar el jugador
-    void MoveAndRotate()
-    {
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
+        horizontal = Input.GetAxis("Horizontal");
+        vertical = Input.GetAxis("Vertical");
 
         transform.Rotate(0, horizontal * rotationSpeed * Time.deltaTime, 0);
 
-        Vector3 direction = new Vector3(0f, 0f, vertical).normalized;
-        float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : moveSpeed;   
-        Vector3 move = transform.TransformDirection(direction) * currentSpeed * Time.deltaTime;
-        rb.MovePosition(rb.position + move);
+        //Vector3 direction = new Vector3(0f, 0f, vertical).normalized;
+        currentSpeed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : moveSpeed;
+    }
+
+    void FixedUpdate()
+    {
+        MoveAndRotate(); // Aqui se maneja mejor la fisica
+        dash();
+        Jump();
+    }
+
+    // Mover y rotar el jugador
+    void MoveAndRotate()
+    {
+        
+        //Vector3 move = transform.TransformDirection(direction) * currentSpeed * Time.deltaTime;
+        //rb.MovePosition(rb.position + move);
 
         // Animaciones de caminar y correr
         if (vertical != 0f)
         {
+            rb.AddForce(transform.forward * currentSpeed, ForceMode.Force);
+           
             if (currentSpeed == runSpeed)
             {
                 animator.SetBool("isRunning", true);
@@ -106,4 +116,5 @@ public class SimplePlayerController : MonoBehaviour
             animator.SetBool("isJumping", false);
         }
     }
+
 }
