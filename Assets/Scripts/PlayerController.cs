@@ -36,11 +36,14 @@ public class SimplePlayerController : MonoBehaviour
     {
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
+
         transform.Rotate(0, horizontal * rotationSpeed * Time.deltaTime, 0);
+
         Vector3 direction = new Vector3(0f, 0f, vertical).normalized;
         float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : moveSpeed;   
         Vector3 move = transform.TransformDirection(direction) * currentSpeed * Time.deltaTime;
         rb.MovePosition(rb.position + move);
+
         // Animaciones de caminar y correr
         if (vertical != 0f)
         {
